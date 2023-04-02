@@ -1,0 +1,155 @@
+provider "aws" {
+  region = "us-east-1"
+}
+#########################
+ec2 with output
+
+resource "aws_instance" "web1" {
+  ami           = "ami-00c39f71452c08778"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "prod1"
+  }
+}
+
+resource "aws_instance" "web2" {
+  ami           = "ami-00c39f71452c08778"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "prod2"
+  }
+}
+#  for output
+output "instance_ips" {
+  value = [
+    aws_instance.web1.private_ip,
+    aws_instance.web2.private_ip
+  ]
+}
+
+
+
+##################################
+
+# for security_group but different port
+
+
+resource "aws_security_group" "var_demo" {
+  name        = "vijay-variables"
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpn_ip]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [var.vpn_ip]
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "tcp"
+    cidr_blocks = [var.vpn_ip]
+  }
+}
+--------------------------------
+#varibale file
+
+variable "vpn_ip" {
+  type    = numbers   
+  default = "116.50.30.50/32"
+}
+
+
+
+
+################################################
+provider "aws" {
+  region = "us-east-1"
+}
+
+# for map concept
+
+resource "aws_instance" "web1" {
+  ami           = "ami-00c39f71452c08778"
+  instance_type = var.instance_type_map["web"]
+  tags = {
+    Name = "prod1"
+  }
+}
+---------
+variable "instance_type_map" {
+  type = map(string)
+  default = {
+    web = "t2.micro"
+    app = "t3.small"
+    db = "r5.large"
+  }
+}
+-----
+###############
+
+#list concept
+
+resource "aws_instance" "web1" {
+  ami           = "ami-00c39f71452c08778"
+  instance_type = "var.list[0]"
+  tags = {
+    Name = "prod1"
+  }
+}
+----------
+variable "list" {
+  type = list
+  default = ["m5.large","m5.xlarge","t2.medium"]
+}
+----------
+
+#############################################
+
+# count.index concept
+
+resource "aws_iam_user" "lb" {
+ name = "loadbalancer.${count.index}"
+ count = 5
+}
+
+##################### 
+
+# EC2_differnt-ami-with-differnt-name [ech.value] concept
+
+
+
+terraform {
+        required_providers {
+        aws = {
+        source = "hashicorp/aws"
+        version = "~> 4.16"
+}
+}
+        required_version = ">= 1.2.0"
+}
+        provider "aws" {
+        region = "us-east-1"
+}
+
+locals {
+        instances = {"Dev":"ami-0574da719dca65348","Steging":"ami-0b0dcb5067f052a63","Testing":"ami-0574da719dca65348","Prod":"ami-0b0dcb5067f052a63"}
+}
+
+
+resource "aws_instance" "web" {
+        for_each = local.instances
+        ami = each.value
+        instance_type = "t2.micro"
+        tags = {
+                Name = each.key
+}
+}
+
