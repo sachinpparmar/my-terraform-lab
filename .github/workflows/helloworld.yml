@@ -15,7 +15,7 @@ jobs:
         run: |
           echo "hello-world Test"
       - name: Deploy
-        run: |
+        run: | 
           echo "Deploy"
   check:
     runs-on: self-hosted
