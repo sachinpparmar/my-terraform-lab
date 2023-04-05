@@ -1,0 +1,26 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: |
+          echo "hello-world Build"
+      - name: Test
+        run: |
+          echo "hello-world Test"
+      - name: Deploy
+        run: |
+          echo "Deploy"
+  check:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check
+        run: |
+          echo "Check"
