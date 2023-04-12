@@ -1,0 +1,43 @@
+name: MVRC Pre-Prod CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "pre-prod" ]
+  pull_request:
+    branches: [ "pre-prod" ]
+
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Check outputs
+        run: echo ${{ steps.vars.outputs.sha_short }} 
+
+
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: |
+          docker build . --file Dockerfile --tag mvrc-api:${{ steps.vars.outputs.sha_short }}
+       #  docker build . --file Dockerfile --tag mvrc-api:$IMAGE_TAG
+
+      - uses: actions/checkout@v3
+      - name: update docker-compose.yml
+        run: |
+          sed -i 's/IMAGE_TAG/${{ steps.vars.outputs.sha_short }}/g' docker-compose.yml
+          cp ./docker-compose.yml /root/project/docker-compose.yml
+          cp ./nginx-conf/nginx.conf /root/project/nginx-conf/nginx.conf
+    # cat docker-compose.yml
+          
+      - name: Deploy Application & Database 
+        run: |
+          docker-compose -f /root/project/docker-compose.yml up -d 
