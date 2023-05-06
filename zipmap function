@@ -1,0 +1,19 @@
+provider "aws" {
+  region = "us-east-1"
+}
+resource "aws_iam_user" "lb" {
+ name = "loadbalancer.${count.index}"
+ count = 5
+}
+
+output "iam_names"{
+  value = aws_iam_user.lb[*].name
+}
+
+output "iam_arn"{
+  value = aws_iam_user.lb[*].arn
+}
+
+output "combined"{
+  value = zipmap(aws_iam_user.lb[*].name, aws_iam_user.lb[*].arn )
+}
