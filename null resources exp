@@ -14,3 +14,23 @@ resource "null_resource" "health_check" {
     command = "curl https://google.com"
   }
 }
+
+-------------------------------------------------------------------------
+
+provider "aws" {
+  region = "us-east-1"
+}
+resource "null_resource" "example" {
+  triggers = {
+    trigger_time = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = "echo 'Null Resource Example'"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "echo 'Destroying Null Resource'"
+  }
+}
